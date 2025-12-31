@@ -1,0 +1,23 @@
+.env
+.env.*
+*.log
+
+
+# Node.js (Backend / Frontend)
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Terraform
+
+.terraform/
+.providers/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+
+nginx.conf

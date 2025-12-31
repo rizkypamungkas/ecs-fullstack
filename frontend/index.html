@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Management CRUD</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #555;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+      }
+
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s;
+        flex: 1;
+      }
+
+      button:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-cancel {
+        background: #6c757d;
+      }
+
+      .btn-cancel:hover {
+        background: #5a6268;
+      }
+
+      #usersList {
+        margin-top: 20px;
+      }
+
+      .users-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .users-header h2 {
+        color: #333;
+        font-size: 20px;
+      }
+
+      .user-count {
+        background: #667eea;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .user-item {
+        background: #f8f9fa;
+        padding: 20px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s;
+        border: 2px solid transparent;
+      }
+
+      .user-item:hover {
+        background: #e9ecef;
+        border-color: #667eea;
+        transform: translateX(5px);
+      }
+
+      .user-info {
+        flex: 1;
+      }
+
+      .user-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 16px;
+        margin-bottom: 4px;
+      }
+
+      .user-email {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .user-id {
+        color: #999;
+        font-size: 12px;
+        margin-left: 8px;
+      }
+
+      .user-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .user-actions button {
+        padding: 8px 16px;
+        font-size: 13px;
+        flex: none;
+      }
+
+      .btn-edit {
+        background: #28a745;
+      }
+
+      .btn-edit:hover {
+        background: #218838;
+      }
+
+      .btn-delete {
+        background: #dc3545;
+      }
+
+      .btn-delete:hover {
+        background: #c82333;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+      }
+
+      .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #667eea;
+        font-weight: 600;
+      }
+
+      .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #f5c6cb;
+      }
+
+      .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #c3e6cb;
+      }
+
+      .form-mode {
+        background: #667eea;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: inline-block;
+      }
+
+      @media (max-width: 768px) {
+        .user-item {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .user-actions {
+          width: 100%;
+          margin-top: 12px;
+        }
+
+        .user-actions button {
+          flex: 1;
+        }
+
+        .btn-group {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>👥 User Management</h1>
+        <p class="subtitle">Create, read, update, and delete users</p>
+
+        <div id="messageContainer"></div>
+
+        <div id="formMode" class="form-mode" style="display: none"></div>
+
+        <form id="userForm">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input
+              type="text"
+              id="name"
+              placeholder="Enter full name"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="Enter email address"
+              required
+            />
+          </div>
+          <div class="btn-group">
+            <button type="submit" id="submitBtn">Add User</button>
+            <button
+              type="button"
+              id="cancelBtn"
+              class="btn-cancel"
+              style="display: none"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div id="usersList">
+          <div class="loading">Loading users...</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Configuration
+      const CONFIG = {
+        // For local development, use direct ALB URL
+        // For production with CloudFront, use '/api'
+        API_BASE:
+          window.location.hostname === "localhost"
+            ? "http://localhost:3000/api"
+            : "https://api.rizkyproject.site/api",
+      };
+
+      let editingUserId = null;
+
+      // DOM Elements
+      const userForm = document.getElementById("userForm");
+      const nameInput = document.getElementById("name");
+      const emailInput = document.getElementById("email");
+      const submitBtn = document.getElementById("submitBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const usersList = document.getElementById("usersList");
+      const messageContainer = document.getElementById("messageContainer");
+      const formMode = document.getElementById("formMode");
+
+      // Show message
+      function showMessage(message, type = "success") {
+        messageContainer.innerHTML = `
+                <div class="${type}-message">
+                    ${message}
+                </div>
+            `;
+        setTimeout(() => {
+          messageContainer.innerHTML = "";
+        }, 3000);
+      }
+
+      // Fetch all users
+      async function fetchUsers() {
+        try {
+          usersList.innerHTML = '<div class="loading">Loading users...</div>';
+
+          const response = await fetch(`${CONFIG.API_BASE}/users`);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const users = await response.json();
+          displayUsers(users);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          usersList.innerHTML = `
+                    <div class="error-message">
+                        Failed to load users. Please check your connection and try again.
+                    </div>
+                `;
+        }
+      }
+
+      // Display users
+      function displayUsers(users) {
+        if (users.length === 0) {
+          usersList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No users yet. Add your first user above!</p>
+                    </div>
+                `;
+          return;
+        }
+
+        usersList.innerHTML = `
+                <div class="users-header">
+                    <h2>All Users</h2>
+                    <span class="user-count">${users.length} user${
+          users.length !== 1 ? "s" : ""
+        }</span>
+                </div>
+            `;
+
+        users.forEach((user) => {
+          const userDiv = document.createElement("div");
+          userDiv.className = "user-item";
+          userDiv.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-name">
+                            ${escapeHtml(user.name)}
+                            <span class="user-id">#${user.id}</span>
+                        </div>
+                        <div class="user-email">${escapeHtml(user.email)}</div>
+                    </div>
+                    <div class="user-actions">
+                        <button onclick="editUser(${user.id}, '${escapeHtml(
+            user.name
+          )}', '${escapeHtml(user.email)}')" class="btn-edit">
+                            ✏️ Edit
+                        </button>
+                        <button onclick="deleteUser(${
+                          user.id
+                        })" class="btn-delete">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                `;
+          usersList.appendChild(userDiv);
+        });
+      }
+
+      // Escape HTML to prevent XSS
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Add or Update user
+      userForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+
+        if (!name || !email) {
+          showMessage("Please fill in all fields", "error");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = editingUserId ? "Updating..." : "Adding...";
+
+        try {
+          const url = editingUserId
+            ? `${CONFIG.API_BASE}/users/${editingUserId}`
+            : `${CONFIG.API_BASE}/users`;
+
+          const method = editingUserId ? "PUT" : "POST";
+
+          const response = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to save user");
+          }
+
+          const userData = await response.json();
+          showMessage(
+            editingUserId
+              ? `User "${name}" updated successfully!`
+              : `User "${name}" added successfully!`,
+            "success"
+          );
+
+          resetForm();
+          fetchUsers();
+        } catch (error) {
+          console.error("Error saving user:", error);
+          showMessage(
+            error.message || "Failed to save user. Please try again.",
+            "error"
+          );
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = editingUserId ? "Update User" : "Add User";
+        }
+      });
+
+      // Edit user
+      function editUser(id, name, email) {
+        editingUserId = id;
+        nameInput.value = name;
+        emailInput.value = email;
+        submitBtn.textContent = "Update User";
+        cancelBtn.style.display = "block";
+        formMode.style.display = "block";
+        formMode.textContent = `✏️ Editing User #${id}`;
+        nameInput.focus();
+
+        // Scroll to form
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // Delete user
+      async function deleteUser(id) {
+        if (
+          !confirm(
+            "Are you sure you want to delete this user? This action cannot be undone."
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`${CONFIG.API_BASE}/users/${id}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to delete user");
+          }
+
+          const result = await response.json();
+
+          if (result.deleted) {
+            showMessage("User deleted successfully!", "success");
+            fetchUsers();
+          } else {
+            showMessage("User not found", "error");
+          }
+        } catch (error) {
+          console.error("Error deleting user:", error);
+          showMessage("Failed to delete user. Please try again.", "error");
+        }
+      }
+
+      // Cancel editing
+      cancelBtn.addEventListener("click", resetForm);
+
+      // Reset form
+      function resetForm() {
+        editingUserId = null;
+        userForm.reset();
+        submitBtn.textContent = "Add User";
+        cancelBtn.style.display = "none";
+        formMode.style.display = "none";
+      }
+
+      // Load users on page load
+      fetchUsers();
+
+      // Make functions globally accessible
+      window.editUser = editUser;
+      window.deleteUser = deleteUser;
+    </script>
+  </body>
+</html>
