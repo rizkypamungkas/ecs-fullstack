@@ -23,7 +23,7 @@ db.execute(`
   )
 `).then(() => console.log("Table users ready")).catch(console.error);
 
-app.get("/", (req, res) => res.send("Node.js CRUD API is running."));
+app.get("/", (req, res) => res.send("Node.js CRUD API is running V2."));
 app.get("/health", (req, res) => res.status(200).send("OK"));
 
 // ✅ CRUD endpoints dengan prefix /api
