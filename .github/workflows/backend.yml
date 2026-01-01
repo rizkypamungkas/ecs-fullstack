@@ -36,7 +36,7 @@ jobs:
       id: render
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ecs/task-definition.json
+        task-definition: infra/modules/ecs_fargate/task-definition.json
         container-name: backend
         image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
 
