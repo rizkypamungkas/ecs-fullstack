@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "backend/**"
-
+      
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -46,6 +44,5 @@ jobs:
         aws ecs describe-services \
           --cluster ${{ vars.ECS_CLUSTER }} \
           --services ${{ vars.ECS_SERVICE }} \
-          --query 'services[0].deployments[0]' \
-
+          --query 'services[0].deployments[0]' 
       
