@@ -154,6 +154,7 @@ data "aws_iam_policy_document" "ecs_task_permissions" {
 }
 
 resource "aws_iam_role_policy" "ecs_task_permissions" {
+  count  = length(var.secret_arns) + length(var.ssm_parameter_arns) > 0 ? 1 : 0
   role   = aws_iam_role.ecs_task.id
   policy = data.aws_iam_policy_document.ecs_task_permissions.json
 }
