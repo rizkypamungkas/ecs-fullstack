@@ -1,0 +1,51 @@
+name: Deploy Backend (ECS)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Login to ECR
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build & Push image to ECR
+      run: |
+        IMAGE_BASE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}
+        docker build -t $IMAGE_BASE:${{ github.sha }} backend
+        docker tag $IMAGE_BASE:${{ github.sha }} $IMAGE_BASE:latest
+        docker push $IMAGE_BASE:${{ github.sha }}
+        docker push $IMAGE_BASE:latest
+
+    
+    - name: Force ECS deployment
+      run: |
+        echo "Updating ECS Service..."
+        aws ecs update-service \
+          --cluster ${{ vars.ECS_CLUSTER }} \
+          --service ${{ vars.ECS_SERVICE }} \
+          --force-new-deployment
+
+    - name: Get deployment status
+      run: |
+        aws ecs describe-services \
+          --cluster ${{ vars.ECS_CLUSTER }} \
+          --services ${{ vars.ECS_SERVICE }} \
+          --query 'services[0].deployments[0]' \
+
+      
