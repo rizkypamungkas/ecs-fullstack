@@ -14,8 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -23,30 +22,27 @@ jobs:
         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Login to ECR
-      uses: aws-actions/amazon-ecr-login@v2
+    - uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build & Push image to ECR
+    - name: Build & Push Image (immutable)
       run: |
         IMAGE_BASE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}
-        docker build -t $IMAGE_BASE:${{ github.sha }} backend
-        docker tag $IMAGE_BASE:${{ github.sha }} $IMAGE_BASE:latest
-        docker push $IMAGE_BASE:${{ github.sha }}
-        docker push $IMAGE_BASE:latest
+        IMAGE_TAG=${{ github.sha }}
 
-    
-    - name: Force ECS deployment
-      run: |
-        echo "Updating ECS Service..."
-        aws ecs update-service \
-          --cluster ${{ vars.ECS_CLUSTER }} \
-          --service ${{ vars.ECS_SERVICE }} \
-          --force-new-deployment
+        docker build -t $IMAGE_BASE:$IMAGE_TAG backend
+        docker push $IMAGE_BASE:$IMAGE_TAG
 
-    - name: Get deployment status
-      run: |
-        aws ecs describe-services \
-          --cluster ${{ vars.ECS_CLUSTER }} \
-          --services ${{ vars.ECS_SERVICE }} \
-          --query 'services[0].deployments[0]' 
-      
+    - name: Render new task definition
+      id: render
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ecs/task-definition.json
+        container-name: backend
+        image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
+
+    - name: Deploy to ECS
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        cluster: ${{ vars.ECS_CLUSTER }}
+        service: ${{ vars.ECS_SERVICE }}
+        task-definition: ${{ steps.render.outputs.task-definition }}
