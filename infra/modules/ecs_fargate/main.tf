@@ -79,6 +79,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
     ]
   })
 }
+
 // LOG GROUP //
 
 resource "aws_cloudwatch_log_group" "ecs" {
@@ -135,7 +136,7 @@ resource "aws_ecs_task_definition" "app_task" {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = "ap-southeast-1"
+          "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = var.container_name
         }
       }
@@ -168,13 +169,19 @@ resource "aws_ecs_service" "ecs_service" {
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
 
+  lifecycle {
+    ignore_changes = [
+      task_definition,
+    ]
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.ecs_execution_role_policy,
     aws_cloudwatch_log_group.ecs
   ]
 }
 
-// CLOUDWATCH METRIC ALARM & AUTOSCALING //
+// ECS TARGET TRACKING AUTOSCALING //
 
 resource "aws_appautoscaling_target" "ecs_scaling_target" {
   max_capacity       = 3
@@ -199,6 +206,39 @@ resource "aws_appautoscaling_policy" "cpu_policy" {
     scale_in_cooldown  = 60
     scale_out_cooldown = 60
   }
+}
+
+// CLOUDWATCH METRIC ALARM FOR SNS ALERT ONLY (DOES NOT TRIGGER AUTOSCALING) // 
+
+resource "aws_cloudwatch_metric_alarm" "ecs_cpu_alert" {
+  alarm_name         = "ecs-cpu-alert"
+  namespace           = "AWS/ECS"
+  metric_name         = "CPUUtilization"
+
+  statistic           = "Average"
+  period              = 60
+  evaluation_periods  = 2
+  threshold           = 85
+  comparison_operator = "GreaterThanThreshold"
+
+  dimensions = {
+    ClusterName = aws_ecs_cluster.app_cluster.name
+    ServiceName = aws_ecs_service.ecs_service.name
+  }
+
+  alarm_actions = [aws_sns_topic.sns_ecs_alert.arn]
+}
+
+// SNS TOPIC //
+
+resource "aws_sns_topic" "sns_ecs_alert" {
+  name = "sns_ecs_alert"  
+}
+
+resource "aws_sns_topic_subscription" "sns_ecs_alert_sub" {
+  topic_arn = aws_sns_topic.sns_ecs_alert.arn
+  protocol = "email"
+  endpoint = "rizkytripamungkas9@gmail.com"
 }
 
 // ECS SECURITY GROUP

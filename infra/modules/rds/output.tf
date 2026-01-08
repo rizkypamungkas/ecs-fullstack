@@ -1,3 +1,7 @@
+output "db_name_id" {
+  value = aws_db_instance.ecs_app_db.id
+}
+
 output "db_endpoint" {
   value = aws_db_instance.ecs_app_db.address
 }

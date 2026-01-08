@@ -22,19 +22,11 @@ variable "container_name" {
   type = string
 }
 
-variable "aws_account_id" {
-  type = number
-}
-
 variable "aws_region" {
   type = string
 }
 
 variable "ecr_repo_name" {
-  type = string
-}
-
-variable "image_tag" {
   type = string
 }
 

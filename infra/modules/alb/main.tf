@@ -57,6 +57,58 @@ resource "aws_alb_listener" "alb_listener" {
   } 
 }
 
+// HTTP 5XX ALARM (ERROR SERVER) //
+
+resource "aws_cloudwatch_metric_alarm" "alb_5xx_errors" {
+  alarm_name          = "ALB-High-5XX-Errors"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = "60" # check every 60 seconds
+  statistic           = "Sum"
+  threshold           = "5" # alarm send email if error > 5
+  
+  dimensions = {
+    LoadBalancer = aws_alb.alb_ecs.arn_suffix
+  }
+
+  alarm_actions = [aws_sns_topic.sns_alb_alert.arn] 
+}
+
+// ALB ALARM WHEN TARGETS FAIL HEALTH CHECKS (UnHealthyHostCount) //
+
+resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_hosts" {
+  alarm_name          = "ALB-Unhealthy-Hosts-Detected"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "UnHealthyHostCount"
+  namespace           = "AWS/ApplicationELB"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "0"
+  alarm_description   = "Deteksi jika ada task ECS yang gagal health check"
+
+  dimensions = {
+    LoadBalancer = aws_alb.alb_ecs.arn_suffix
+    TargetGroup  = aws_lb_target_group.ecs_tg.arn_suffix
+  }
+
+  alarm_actions = [aws_sns_topic.sns_alb_alert.arn]
+}
+
+// SNS TOPIC //
+
+resource "aws_sns_topic" "sns_alb_alert" {
+  name = "sns_alb_alert"  
+}
+
+resource "aws_sns_topic_subscription" "sns_alb_alert_sub" {
+  topic_arn = aws_sns_topic.sns_alb_alert.arn
+  protocol = "email"
+  endpoint = "rizkytripamungkas9@gmail.com"
+}
+
 // ALB SECURITY GROUP //
 
 resource "aws_security_group" "alb_sg" {

@@ -82,6 +82,8 @@ resource "aws_cloudfront_distribution" "frontend" {
 
   aliases = ["test.rizkyproject.site"]
 
+  web_acl_id = var.web_acl_arn
+
   # Origin 1: S3 untuk static files
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
@@ -182,9 +184,9 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 }
 
-# CloudWatch Log Group untuk CloudFront (optional)
+# CloudWatch Log Group untuk CloudFront
 resource "aws_cloudwatch_log_group" "cloudfront" {
-  name              = "/aws/cloudfront/${var.name}-${var.environment}"
+  name              = "/aws/cloudfront/${var.name}"
   retention_in_days = 7
 
   tags = {

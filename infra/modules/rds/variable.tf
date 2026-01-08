@@ -2,6 +2,10 @@ variable "name" {
   type = string
 }
 
+variable "db_identifier" {
+  type = string  
+}
+
 variable "private_subnet_ids" {
   type = list(string)
 }

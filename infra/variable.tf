@@ -24,10 +24,25 @@ variable "private_subnet" {
 variable "instance_type" {
   type = string
 }
+
 variable "key_name" {
-  type = string
-  
+  type = string  
 }
+
+// ALB //
+
+variable "alb_target_group_name" {
+  type    = string
+}
+
+variable "target_group_port" {
+  type    = number
+}
+
+variable "target_group_protocol" {
+  type    = string
+}
+
 
 // ECR //
 
@@ -36,6 +51,10 @@ variable "repo_name" {
  }
 
  // RDS // 
+
+variable "db_identifier" {
+  type = string  
+}
 
 variable "allocated_storage" {
   type = number
@@ -107,19 +126,11 @@ variable "container_name" {
   type = string
 }
 
-variable "aws_account_id" {
-  type = number
-}
-
 variable "aws_region" {
   type = string
 }
 
 variable "ecr_repo_name" {
-  type = string
-}
-
-variable "image_tag" {
   type = string
 }
 
@@ -129,6 +140,12 @@ variable "container_port" {
 
 variable "desired_count" {
   type = number
+}
+
+// CLOUDFRONT //
+
+variable "cloudfront_price_class" {
+  type = string
 }
 
 // IAM ROLE //
