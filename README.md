@@ -157,7 +157,7 @@ GitHub Actions assume IAM roles using **OpenID Connect**, eliminating the need t
 
 ### Requirements
 
-- AWS Account & IAM admin access
+- AWS Account & IAM role required
 - AWS CLI installed and configured
 - Terraform v1.0+
 - Docker installed for testing
